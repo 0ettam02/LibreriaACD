@@ -13,7 +13,7 @@ export default function Header() {
                 />
                 <IoSearch className="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-500" />
             </div>
-            <Link href="/" className="mr-3">SignIn</Link>
+            <Link href="/loginPage" className="mr-3">SignIn</Link>
         </div>
     );
 }
