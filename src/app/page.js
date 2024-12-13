@@ -1,14 +1,9 @@
-import Footer from "./component/footerComponent"
-import Header from "./component/headerComponent"
+import Login from "./component/logInComponent";
 
-
-export default function Home() {
+export default function LoginPage() {
   return (
     <>
-    {/* HOMEPAGE */}
-    <Header />
-    {/* FOOTER */}
-    <Footer />
+        <Login />
     </>
   );
 }
