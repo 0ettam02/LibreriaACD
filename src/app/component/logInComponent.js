@@ -1,6 +1,5 @@
+"use client";
 import Link from "next/link";
-import Homepage from "../homePage/page";
-
 export default function Login() {
 
 
@@ -48,7 +47,6 @@ export default function Login() {
                     <div className=" flex justify-center items-center">
                     <Link href="/homePage"
                         
-                        type="submit"
                         className=" w-full max-w-xs p-3 border border-red bg-[#8B0000] text-white rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-center"
                     >
                         Log In
