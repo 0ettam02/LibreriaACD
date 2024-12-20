@@ -1,14 +1,11 @@
 import "../globals.css";
-import { Inter } from "next/font/google";
-
 const inter = Inter({ subsets: ["latin"] });
-
+import { Inter } from "next/font/google";
 export const metadata = {
-  title: "Homepage", 
-  description: "LibreriaACD Homepage", 
+  title: "Profilo personale",
+  description: "LibreriaACD Profilo Personale Page",
 };
-
-export default function HomeLayout({ children }) {
+export default function LoginLayout({ children }) {
   return (
     <html lang="en">
       <body className={inter.className}>{children}</body>
