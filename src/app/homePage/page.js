@@ -15,6 +15,8 @@ export default function Homepage() {
     { titolo: "massimo gay", copie: 9 },
     { titolo: "Trovo solo 2007", copie: 4 },
     { titolo: "Tommaso non matcha su tinder", copie: 8 },
+    { titolo: "Tommaso non matcha su badoo", copie: 8 },
+
   ];
 
   return (
