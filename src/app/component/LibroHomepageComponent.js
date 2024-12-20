@@ -7,6 +7,7 @@ export default function LibroHomepage({ titolo, copie }) {
       <div
         className="flex flex-col items-center justify-center w-80 h-70 border-2 border-red-500 rounded-lg bg-white shadow-md cursor-pointer hover:shadow-lg transition-shadow duration-300"
       >
+
         <div className="flex items-center justify-center bg-white-700 text-red-700 p-2 rounded">
           <GoBook className="text-8xl" />
         </div>

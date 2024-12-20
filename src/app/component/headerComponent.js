@@ -1,5 +1,6 @@
 "use client";
 import { IoSearch } from "react-icons/io5";
+import { IoPersonCircleOutline } from "react-icons/io5";
 import Link from "next/link";
 
 export default function Header() {
@@ -14,7 +15,7 @@ export default function Header() {
                 />
                 <IoSearch className="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-500" />
             </div>
-            <Link href="/loginPage" className="mr-3">SignIn</Link>
+            <Link href="/profiloPersonalePage"><IoPersonCircleOutline className="w-10 h-10 mr-3"/></Link>
         </div>
     );
 }
