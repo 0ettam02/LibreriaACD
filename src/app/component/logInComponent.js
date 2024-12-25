@@ -42,7 +42,7 @@ export default function Login() {
 
                     {/* Login Button */}
                     <div className=" flex justify-center items-center">
-                    <Link href="/profiloLibraioPage"
+                    <Link href="/homePage"
                         
                         className=" w-full max-w-xs p-3 border border-red bg-[#8B0000] text-white rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-center"
                     >
