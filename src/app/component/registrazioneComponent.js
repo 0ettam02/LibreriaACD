@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-export default function Login() {
+export default function Registrazione() {
     return (
         <>
 
@@ -10,11 +10,36 @@ export default function Login() {
                     className="bg-white p-8 rounded shadow-md w-full max-w-md"
                 >
                     <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
-                        Log into your account
+                        SignUp
                     </h2>
                     <p className="text-sm text-center text-gray-600 mb-6">
-                        Enter your email and password below to login
+                        Enter your credentials below to SignUp
                     </p>
+
+                    
+                    {/* Input Nome*/}
+                    <div className="mb-6">
+                        <input
+                            type="name"
+                            placeholder="Mario"
+                            //value={nome}
+                            //onChange={(e) => setPassword(e.target.value)}
+                            className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                            required
+                        />
+                    </div>
+
+                    {/* Input Surname */}
+                    <div className="mb-6">
+                        <input
+                            type="surname"
+                            placeholder="Rossi"
+                            //value={cognome}
+                            //onChange={(e) => setPassword(e.target.value)}
+                            className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                            required
+                        />
+                    </div>
 
                     {/* Input Email */}
                     <div className="mb-4">
@@ -48,9 +73,6 @@ export default function Login() {
                     >
                         Log In
                     </Link>
-                    </div>
-                    <div className="text-center mt-10">
-                    If you don't have an account yet, create one <Link href="/registrazionePage" className="font-bold">here</Link>
                     </div>
                 </form>
             </div>
