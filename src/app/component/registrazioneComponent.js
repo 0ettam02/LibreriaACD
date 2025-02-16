@@ -12,6 +12,14 @@ export default function Registrazione() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
+        console.log("Dati inviati:", {
+            username,
+            nome,
+            cognome,
+            email,
+            password
+        });
+
         try {
             const response = await fetch('http://localhost:8080', {
                 method: 'POST',
@@ -29,11 +37,10 @@ export default function Registrazione() {
                 })
             });
 
-            if (!response.ok) {
-                throw new Error('Errore nella risposta del server');
-            }
+            const textResponse = await response.text();
+            console.log(textResponse);
+            const data = JSON.parse(textResponse);
 
-            const data = await response.json();
             if (data.status === "success") {
                 window.location.href = "/homePage";
             } else {

@@ -29,7 +29,11 @@ export default function Login() {
 
             const data = await response.json();
             if (data.status === "success") {
-                window.location.href = "/homePage";
+                if (data.type === "libraio") {
+                    window.location.href = "/profiloLibraioPage";
+                } else {
+                    window.location.href = "/homePage";
+                }
             } else {
                 alert(data.message);
             }

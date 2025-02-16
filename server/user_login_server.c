@@ -44,12 +44,12 @@ void handle_login(int client_socket, char* buffer) {
     }
 
     struct json_object *parsed_json = json_tokener_parse(json_start);
-    if (!parsed_json) {
-        const char* error_response = "{\"status\": \"error\", \"message\": \"JSON non valido\"}";
-        send(client_socket, response_headers, strlen(response_headers), 0);
-        send(client_socket, error_response, strlen(error_response), 0);
-        return;
-    }
+    struct json_object *email, *password;
+    json_object_object_get_ex(parsed_json, "email", &email);
+    json_object_object_get_ex(parsed_json, "password", &password);
+
+    const char* email_str = json_object_get_string(email);
+    const char* password_str = json_object_get_string(password);
 
     pthread_mutex_lock(&db_mutex);
     
@@ -65,17 +65,21 @@ void handle_login(int client_socket, char* buffer) {
         return;
     }
 
-    struct json_object *email, *password;
-    json_object_object_get_ex(parsed_json, "email", &email);
-    json_object_object_get_ex(parsed_json, "password", &password);
-
-    const char *paramValues[2];
-    paramValues[0] = json_object_get_string(email);
-    paramValues[1] = json_object_get_string(password);
-
-    PGresult *res = PQexecParams(conn,
-        "SELECT * FROM Utenti WHERE email = $1 AND password = $2",
-        2, NULL, paramValues, NULL, NULL, 0);
+    // Verifica se l'email contiene "@libraio"
+    PGresult *res;
+    if (strstr(email_str, "@libraio") != NULL) {
+        // Query per il libraio
+        const char *paramValues[2] = {email_str, password_str};
+        res = PQexecParams(conn,
+            "SELECT * FROM Libraio WHERE email = $1 AND password = $2",
+            2, NULL, paramValues, NULL, NULL, 0);
+    } else {
+        // Query per l'utente normale
+        const char *paramValues[2] = {email_str, password_str};
+        res = PQexecParams(conn,
+            "SELECT * FROM Utenti WHERE email = $1 AND password = $2",
+            2, NULL, paramValues, NULL, NULL, 0);
+    }
 
     send(client_socket, response_headers, strlen(response_headers), 0);
     
@@ -83,7 +87,14 @@ void handle_login(int client_socket, char* buffer) {
         const char* error_response = "{\"status\": \"error\", \"message\": \"Email o password non validi\"}";
         send(client_socket, error_response, strlen(error_response), 0);
     } else {
-        const char* success_response = "{\"status\": \"success\", \"message\": \"Login effettuato con successo\"}";
+        char success_response[256];
+        if (strstr(email_str, "@libraio") != NULL) {
+            snprintf(success_response, sizeof(success_response), 
+                "{\"status\": \"success\", \"message\": \"Login effettuato con successo\", \"type\": \"libraio\"}");
+        } else {
+            snprintf(success_response, sizeof(success_response), 
+                "{\"status\": \"success\", \"message\": \"Login effettuato con successo\", \"type\": \"utente\"}");
+        }
         send(client_socket, success_response, strlen(success_response), 0);
     }
 

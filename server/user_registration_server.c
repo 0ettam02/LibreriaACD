@@ -72,16 +72,26 @@ void handle_registration(int client_socket, char* buffer) {
     json_object_object_get_ex(parsed_json, "nome", &nome);
     json_object_object_get_ex(parsed_json, "cognome", &cognome);
 
-    const char *paramValues[5];
-    paramValues[0] = json_object_get_string(username);
-    paramValues[1] = json_object_get_string(password);
-    paramValues[2] = json_object_get_string(email);
-    paramValues[3] = json_object_get_string(nome);
-    paramValues[4] = json_object_get_string(cognome);
+    const char *username_str = json_object_get_string(username);
+    const char *password_str = json_object_get_string(password);
+    const char *email_str = json_object_get_string(email);
+    const char *nome_str = json_object_get_string(nome);
+    const char *cognome_str = json_object_get_string(cognome);
 
-    PGresult *res = PQexecParams(conn,
-        "INSERT INTO Utenti (username, password, email, nome, cognome) VALUES ($1, $2, $3, $4, $5)",
-        5, NULL, paramValues, NULL, NULL, 0);
+    PGresult *res;
+    if (strstr(email_str, "@libraio") != NULL) {
+        // Inserimento nella tabella Libraio
+        const char *paramValuesLibraio[5] = {username_str, password_str, email_str, nome_str, cognome_str};
+        res = PQexecParams(conn,
+            "INSERT INTO Libraio (username, password, email, nome, cognome) VALUES ($1, $2, $3, $4, $5)",
+            5, NULL, paramValuesLibraio, NULL, NULL, 0);
+    } else {
+        // Inserimento nella tabella Utenti
+        const char *paramValuesUtenti[5] = {username_str, password_str, email_str, nome_str, cognome_str};
+        res = PQexecParams(conn,
+            "INSERT INTO Utenti (username, password, email, nome, cognome) VALUES ($1, $2, $3, $4, $5)",
+            5, NULL, paramValuesUtenti, NULL, NULL, 0);
+    }
 
     send(client_socket, response_headers, strlen(response_headers), 0);
     
@@ -93,7 +103,7 @@ void handle_registration(int client_socket, char* buffer) {
                 error_msg);
         send(client_socket, error_response, strlen(error_response), 0);
     } else {
-        const char* success_response = "{\"status\": \"success\", \"message\": \"Utente registrato con successo\"}";
+        const char* success_response = "{\"status\": \"success\", \"message\": \"Registrazione completata con successo\"}";
         send(client_socket, success_response, strlen(success_response), 0);
     }
 
