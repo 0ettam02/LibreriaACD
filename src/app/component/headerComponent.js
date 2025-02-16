@@ -6,7 +6,7 @@ import Link from "next/link";
 export default function Header() {
     return (
         <div className="text-white flex justify-between items-center bg-[#8B0000] p-3">
-            <Link href="/" className="text-sm lg:text-2xl ml-3">LibreriaACD</Link>
+            <Link href="/homePage" className="text-sm lg:text-2xl ml-3">LibreriaACD</Link>
             <div className="relative">
                 <input
                     type="text"

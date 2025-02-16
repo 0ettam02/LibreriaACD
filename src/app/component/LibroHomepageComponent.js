@@ -1,9 +1,10 @@
 "use client";
 import { GoBook } from "react-icons/go";
-
+import Link from "next/link";
 export default function LibroHomepage({ titolo, copie }) {
   return (
     <>
+      <Link href="/carrelloPage">
       <div
         className="flex flex-col items-center justify-center w-80 h-70 border-2 border-red-500 rounded-lg bg-white shadow-md cursor-pointer hover:shadow-lg transition-shadow duration-300"
       >
@@ -23,6 +24,7 @@ export default function LibroHomepage({ titolo, copie }) {
           </div>
         </div>
       </div>
+      </Link>
     </>
   );
 }
