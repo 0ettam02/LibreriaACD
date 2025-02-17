@@ -4,25 +4,33 @@ import { useState } from "react";
 export default function GrigliaLibriLibraio() {
   const [righe, setRighe] = useState([
     {
-      libro: "aaaaaaaa",
+      titolo: "aaaaaaaa",
+      autore: "Autore 1",
+      genere: "Genere 1",
       numLibri: "5",
       prenotati: "2",
     },
     {
-      libro: "bbbbbb",
+      titolo: "bbbbbb",
+      autore: "Autore 2",
+      genere: "Genere 2",
       numLibri: "4",
       prenotati: "1",
     },
   ]);
 
-  const [libro, setLibro] = useState("");
+  const [titolo, setTitolo] = useState("");
+  const [autore, setAutore] = useState("");
+  const [genere, setGenere] = useState("");
   const [numLibri, setNumLibri] = useState("");
   const [prenotati, setPrenotati] = useState("");
 
   const aggiungiRiga = () => {
-    if (libro && numLibri && prenotati) {
-      setRighe([...righe, { libro, numLibri, prenotati }]);
-      setLibro("");
+    if (titolo && autore && genere && numLibri && prenotati) {
+      setRighe([...righe, { titolo, autore, genere, numLibri, prenotati }]);
+      setTitolo("");
+      setAutore("");
+      setGenere("");
       setNumLibri("");
       setPrenotati("");
     }
@@ -34,9 +42,23 @@ export default function GrigliaLibriLibraio() {
         <div className="mt-5">
           <input
             type="text"
-            placeholder="Nome del libro"
-            value={libro}
-            onChange={(e) => setLibro(e.target.value)}
+            placeholder="Titolo del libro"
+            value={titolo}
+            onChange={(e) => setTitolo(e.target.value)}
+            className="border border-black p-2 mr-2"
+          />
+          <input
+            type="text"
+            placeholder="Autore"
+            value={autore}
+            onChange={(e) => setAutore(e.target.value)}
+            className="border border-black p-2 mr-2"
+          />
+          <input
+            type="text"
+            placeholder="Genere"
+            value={genere}
+            onChange={(e) => setGenere(e.target.value)}
             className="border border-black p-2 mr-2"
           />
           <input
@@ -64,7 +86,9 @@ export default function GrigliaLibriLibraio() {
           <table className="text-2xl mt-5">
             <thead>
               <tr>
-                <th className="border border-black p-2">Libro</th>
+                <th className="border border-black p-2">Titolo</th>
+                <th className="border border-black p-2">Autore</th>
+                <th className="border border-black p-2">Genere</th>
                 <th className="border border-black p-2">N° Libri</th>
                 <th className="border border-black p-2">N° Libri prenotati</th>
               </tr>
@@ -77,7 +101,9 @@ export default function GrigliaLibriLibraio() {
                     index % 2 === 0 ? "odd:bg-gray-300" : "even:bg-white"
                   }
                 >
-                  <td className="border border-black p-2">{riga.libro}</td>
+                  <td className="border border-black p-2">{riga.titolo}</td>
+                  <td className="border border-black p-2">{riga.autore}</td>
+                  <td className="border border-black p-2">{riga.genere}</td>
                   <td className="border border-black p-2">{riga.numLibri}</td>
                   <td className="border border-black p-2">{riga.prenotati}</td>
                 </tr>
