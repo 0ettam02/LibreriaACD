@@ -29,11 +29,8 @@ export default function Login() {
 
             const data = await response.json();
             if (data.status === "success") {
-                if (data.type === "libraio") {
-                    window.location.href = "/profiloLibraioPage";
-                } else {
+                localStorage.setItem('userEmail', email);
                     window.location.href = "/homePage";
-                }
             } else {
                 alert(data.message);
             }
@@ -42,8 +39,8 @@ export default function Login() {
             alert('Errore durante il login: ' + error.message);
         }
     };
-
     return (
+        <>
         <div className="flex items-center justify-center h-screen bg-gray-100">
             <form
                 onSubmit={handleLogin}
@@ -92,5 +89,6 @@ export default function Login() {
                 </div>
             </form>
         </div>
+        </>
     );
 }
