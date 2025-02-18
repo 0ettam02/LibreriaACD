@@ -25,16 +25,37 @@ export default function GrigliaLibriLibraio() {
   const [numLibri, setNumLibri] = useState("");
   const [prenotati, setPrenotati] = useState("");
 
-  const aggiungiRiga = () => {
+  const aggiungiRiga = async () => {
     if (titolo && autore && genere && numLibri && prenotati) {
-      setRighe([...righe, { titolo, autore, genere, numLibri, prenotati }]);
-      setTitolo("");
-      setAutore("");
-      setGenere("");
-      setNumLibri("");
-      setPrenotati("");
+        const libro = { titolo, autore, genere, numLibri: parseInt(numLibri), prenotati: parseInt(prenotati) };
+
+        try {
+            const response = await fetch('http://localhost:8080', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(libro),
+            });
+
+            const data = await response.json();
+            if (data.status === "success") {
+                setRighe([...righe, libro]);
+                setTitolo("");
+                setAutore("");
+                setGenere("");
+                setNumLibri("");
+                setPrenotati("");
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error('Errore durante l\'inserimento del libro:', error);
+            alert('Errore durante l\'inserimento del libro: ' + error.message);
+        }
     }
-  };
+};
+
 
   return (
     <>
@@ -114,4 +135,4 @@ export default function GrigliaLibriLibraio() {
       </div>
     </>
   );
-}
+};
