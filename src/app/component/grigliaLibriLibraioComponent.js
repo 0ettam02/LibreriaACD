@@ -51,7 +51,6 @@ export default function GrigliaLibriLibraio() {
             }
         } catch (error) {
             console.error('Errore durante l\'inserimento del libro:', error);
-            alert('Errore durante l\'inserimento del libro: ' + error.message);
         }
     }
 };

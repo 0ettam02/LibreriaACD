@@ -80,13 +80,11 @@ void handle_registration(int client_socket, char* buffer) {
 
     PGresult *res;
     if (strstr(email_str, "@libraio") != NULL) {
-        // Inserimento nella tabella Libraio
         const char *paramValuesLibraio[5] = {username_str, password_str, email_str, nome_str, cognome_str};
         res = PQexecParams(conn,
             "INSERT INTO Libraio (username, password, email, nome, cognome) VALUES ($1, $2, $3, $4, $5)",
             5, NULL, paramValuesLibraio, NULL, NULL, 0);
     } else {
-        // Inserimento nella tabella Utenti
         const char *paramValuesUtenti[5] = {username_str, password_str, email_str, nome_str, cognome_str};
         res = PQexecParams(conn,
             "INSERT INTO Utenti (username, password, email, nome, cognome) VALUES ($1, $2, $3, $4, $5)",

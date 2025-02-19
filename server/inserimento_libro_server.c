@@ -87,16 +87,14 @@ void handle_inserimento_libro(int client_socket, char* buffer) {
     } else {
         int id_libro = atoi(PQgetvalue(res, 0, 0));
 
-        // Converti gli interi in stringhe
         char id_libro_str[12];
         char num_libri_str[12];
         char num_libri_disponibili_str[12];
 
         sprintf(id_libro_str, "%d", id_libro);
         sprintf(num_libri_str, "%d", num_libri);
-        sprintf(num_libri_disponibili_str, "%d", num_libri); // Se le copie disponibili sono uguali a quelle totali
+        sprintf(num_libri_disponibili_str, "%d", num_libri); 
 
-        // Inserisci nella tabella Copie
         const char *paramValuesCopie[3] = {id_libro_str, num_libri_str, num_libri_disponibili_str};
         res = PQexecParams(conn,
             "INSERT INTO Copie (id_libro, copie_totali, copie_disponibili) VALUES ($1, $2, $3)",
@@ -128,6 +126,7 @@ void handle_options(int client_socket) {
         "Access-Control-Allow-Methods: POST, OPTIONS\r\n"
         "Access-Control-Allow-Headers: Content-Type\r\n"
         "Access-Control-Allow-Credentials: true\r\n"
+        "Access-Control-Max-Age: 86400\r\n"
         "Content-Length: 0\r\n"
         "\r\n";
     

@@ -65,16 +65,13 @@ void handle_login(int client_socket, char* buffer) {
         return;
     }
 
-    // Verifica se l'email contiene "@libraio"
     PGresult *res;
     if (strstr(email_str, "@libraio") != NULL) {
-        // Query per il libraio
         const char *paramValues[2] = {email_str, password_str};
         res = PQexecParams(conn,
             "SELECT * FROM Libraio WHERE email = $1 AND password = $2",
             2, NULL, paramValues, NULL, NULL, 0);
     } else {
-        // Query per l'utente normale
         const char *paramValues[2] = {email_str, password_str};
         res = PQexecParams(conn,
             "SELECT * FROM Utenti WHERE email = $1 AND password = $2",
