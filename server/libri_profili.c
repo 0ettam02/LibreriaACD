@@ -79,44 +79,14 @@ void handle_get_libri(int client_socket) {
     pthread_mutex_unlock(&db_mutex);
 }
 
-void handle_inserimento_libro(int client_socket, char* buffer) {
+void handle_get_libri_profilo(int client_socket) {
     const char* response_headers = 
         "HTTP/1.1 200 OK\r\n"
         "Access-Control-Allow-Origin: http://localhost:3000\r\n"
-        "Access-Control-Allow-Methods: POST, OPTIONS\r\n"
+        "Access-Control-Allow-Methods: GET, OPTIONS\r\n"
         "Access-Control-Allow-Headers: Content-Type\r\n"
-        "Access-Control-Allow-Credentials: true\r\n"
         "Content-Type: application/json\r\n"
         "\r\n";
-    
-    if (buffer == NULL) {
-        const char* error_response = "{\"status\": \"error\", \"message\": \"Dati non validi\"}";
-        send(client_socket, response_headers, strlen(response_headers), 0);
-        send(client_socket, error_response, strlen(error_response), 0);
-        return;
-    }
-
-    char* json_start = strstr(buffer, "{");
-    if (!json_start) {
-        const char* error_response = "{\"status\": \"error\", \"message\": \"JSON non valido\"}";
-        send(client_socket, response_headers, strlen(response_headers), 0);
-        send(client_socket, error_response, strlen(error_response), 0);
-        return;
-    }
-
-    struct json_object *parsed_json = json_tokener_parse(json_start);
-    struct json_object *titolo, *autore, *genere, *copieTotali, *copieDisponibili;
-    json_object_object_get_ex(parsed_json, "titolo", &titolo);
-    json_object_object_get_ex(parsed_json, "autore", &autore);
-    json_object_object_get_ex(parsed_json, "genere", &genere);
-    json_object_object_get_ex(parsed_json, "copieTotali", &copieTotali);
-    json_object_object_get_ex(parsed_json, "copieDisponibili", &copieDisponibili);
-
-    const char *titolo_str = json_object_get_string(titolo);
-    const char *autore_str = json_object_get_string(autore);
-    const char *genere_str = json_object_get_string(genere);
-    int copie_totali = json_object_get_int(copieTotali);
-    int copie_disponibili = json_object_get_int(copieDisponibili);
 
     pthread_mutex_lock(&db_mutex);
     
@@ -127,60 +97,40 @@ void handle_inserimento_libro(int client_socket, char* buffer) {
         send(client_socket, response_headers, strlen(response_headers), 0);
         send(client_socket, error_response, strlen(error_response), 0);
         pthread_mutex_unlock(&db_mutex);
-        json_object_put(parsed_json);
         PQfinish(conn);
         return;
     }
 
-    PGresult *res;
-    const char *paramValues[3] = {titolo_str, autore_str, genere_str};
-    res = PQexecParams(conn,
-        "INSERT INTO Libri (titolo, autore, genere) VALUES ($1, $2, $3) RETURNING id_libro",
-        3, NULL, paramValues, NULL, NULL, 0);
-
+    PGresult *res = PQexec(conn, "SELECT titolo FROM Libri");
+    
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-        const char* error_msg = PQresultErrorMessage(res);
-        char error_response[512];
-        snprintf(error_response, sizeof(error_response), 
-                "{\"status\": \"error\", \"message\": \"%s\"}", 
-                error_msg);
+        const char* error_response = "{\"status\": \"error\", \"message\": \"Errore nella query\"}";
         send(client_socket, response_headers, strlen(response_headers), 0);
         send(client_socket, error_response, strlen(error_response), 0);
-    } else {
-        int id_libro = atoi(PQgetvalue(res, 0, 0));
-
-        char id_libro_str[12];
-        char copie_totali_str[12];
-        char copie_disponibili_str[12];
-
-        sprintf(id_libro_str, "%d", id_libro);
-        sprintf(copie_totali_str, "%d", copie_totali);
-        sprintf(copie_disponibili_str, "%d", copie_disponibili);
-
-        const char *paramValuesCopie[3] = {id_libro_str, copie_totali_str, copie_disponibili_str};
-        res = PQexecParams(conn,
-            "INSERT INTO Copie (id_libro, copie_totali, copie_disponibili) VALUES ($1, $2, $3)",
-            3, NULL, paramValuesCopie, NULL, NULL, 0);
-
-        if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-            const char* error_msg = PQresultErrorMessage(res);
-            char error_response[512];
-            snprintf(error_response, sizeof(error_response), 
-                    "{\"status\": \"error\", \"message\": \"%s\"}", 
-                    error_msg);
-            send(client_socket, response_headers, strlen(response_headers), 0);
-            send(client_socket, error_response, strlen(error_response), 0);
-        } else {
-            const char* success_response = "{\"status\": \"success\", \"message\": \"Libro inserito con successo\"}";
-            send(client_socket, response_headers, strlen(response_headers), 0);
-            send(client_socket, success_response, strlen(success_response), 0);
-        }
+        PQclear(res);
+        PQfinish(conn);
+        pthread_mutex_unlock(&db_mutex);
+        return;
     }
+
+    send(client_socket, response_headers, strlen(response_headers), 0);
+    send(client_socket, "{\"status\": \"success\", \"libriPrenotati\": [", strlen("{\"status\": \"success\", \"libriPrenotati\": ["), 0);
+
+    int rows = PQntuples(res);
+    for (int i = 0; i < rows; i++) {
+        char libro[1024];
+        snprintf(libro, sizeof(libro),
+                "{\"titolo\": \"%s\", \"stato\": \"In prestito\", \"dataPrenotazione\": \"2024-01-01\"}%s",
+                PQgetvalue(res, i, 0),
+                i < rows - 1 ? "," : "");
+        send(client_socket, libro, strlen(libro), 0);
+    }
+
+    send(client_socket, "]}", 2, 0);
 
     PQclear(res);
     PQfinish(conn);
     pthread_mutex_unlock(&db_mutex);
-    json_object_put(parsed_json);
 }
 
 void handle_options(int client_socket) {
@@ -208,10 +158,10 @@ void* handle_client(void* arg) {
 
         if (strstr(buffer, "OPTIONS") != NULL) {
             handle_options(client_socket);
+        } else if (strstr(buffer, "GET /profilo") != NULL) {
+            handle_get_libri_profilo(client_socket);
         } else if (strstr(buffer, "GET") != NULL) {
             handle_get_libri(client_socket);
-        } else if (strstr(buffer, "POST") != NULL) {
-            handle_inserimento_libro(client_socket, buffer);
         }
     }
 
