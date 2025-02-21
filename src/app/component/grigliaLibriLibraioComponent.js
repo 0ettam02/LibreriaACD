@@ -12,7 +12,7 @@ export default function GrigliaLibriLibraio() {
   useEffect(() => {
     const fetchLibri = async () => {
       try {
-        const response = await fetch('http://localhost:8080', {
+        const response = await fetch('http://localhost:8082', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -44,7 +44,7 @@ export default function GrigliaLibriLibraio() {
       };
 
       try {
-        const response = await fetch('http://localhost:8080', {
+        const response = await fetch('http://localhost:8082', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

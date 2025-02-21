@@ -8,7 +8,7 @@
 #include <json-c/json.h>
 #include <postgresql/libpq-fe.h>
 
-#define PORT 8080
+#define PORT 8081
 #define MAX_CLIENTS 10
 #define BUFFER_SIZE 4096
 

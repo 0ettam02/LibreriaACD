@@ -12,7 +12,7 @@ export default function ProfiloPersonale() {
   useEffect(() => {
     const fetchLibriPrenotati = async () => {
       try {
-        const response = await fetch('http://localhost:8080/profilo', {
+        const response = await fetch('http://localhost:8083/profilo', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
