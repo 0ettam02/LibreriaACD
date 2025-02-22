@@ -21,11 +21,12 @@ typedef struct {
 void handle_inserimento_libro(int client_socket, char* buffer) {
     const char* response_headers = 
         "HTTP/1.1 200 OK\r\n"
-        "Access-Control-Allow-Origin: http://localhost:3000\r\n"
+        "Access-Control-Allow-Origin: *\r\n"
         "Access-Control-Allow-Methods: POST, OPTIONS\r\n"
         "Access-Control-Allow-Headers: Content-Type\r\n"
         "Access-Control-Allow-Credentials: true\r\n"
         "Content-Type: application/json\r\n"
+        "Access-Control-Allow-Headers: Content-Type, Authorization\r\n"
         "\r\n";
     
     if (buffer == NULL) {
@@ -51,6 +52,14 @@ void handle_inserimento_libro(int client_socket, char* buffer) {
     json_object_object_get_ex(parsed_json, "numLibri", &numLibri);
     json_object_object_get_ex(parsed_json, "prenotati", &prenotati);
 
+    if (!titolo || !autore || !genere || !numLibri || !prenotati) {
+        const char* error_response = "{\"status\": \"error\", \"message\": \"Dati mancanti\"}";
+        send(client_socket, response_headers, strlen(response_headers), 0);
+        send(client_socket, error_response, strlen(error_response), 0);
+        json_object_put(parsed_json);
+        return;
+    }
+
     const char *titolo_str = json_object_get_string(titolo);
     const char *autore_str = json_object_get_string(autore);
     const char *genere_str = json_object_get_string(genere);
@@ -71,6 +80,8 @@ void handle_inserimento_libro(int client_socket, char* buffer) {
         return;
     }
 
+    send(client_socket, response_headers, strlen(response_headers), 0);
+
     PGresult *res;
     const char *paramValues[3] = {titolo_str, autore_str, genere_str};
     res = PQexecParams(conn,
@@ -84,33 +95,36 @@ void handle_inserimento_libro(int client_socket, char* buffer) {
                 "{\"status\": \"error\", \"message\": \"%s\"}", 
                 error_msg);
         send(client_socket, error_response, strlen(error_response), 0);
+        PQclear(res);
+        PQfinish(conn);
+        pthread_mutex_unlock(&db_mutex);
+        json_object_put(parsed_json);
+        return;
+    }
+
+    int id_libro = atoi(PQgetvalue(res, 0, 0));
+    PQclear(res);
+
+    char id_libro_str[12];
+    char num_libri_str[12];
+    sprintf(id_libro_str, "%d", id_libro);
+    sprintf(num_libri_str, "%d", num_libri);
+
+    const char *paramValuesCopie[3] = {id_libro_str, num_libri_str, num_libri_str};
+    res = PQexecParams(conn,
+        "INSERT INTO Copie (id_libro, copie_totali, copie_disponibili) VALUES ($1, $2, $3)",
+        3, NULL, paramValuesCopie, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        const char* error_msg = PQresultErrorMessage(res);
+        char error_response[512];
+        snprintf(error_response, sizeof(error_response), 
+                "{\"status\": \"error\", \"message\": \"%s\"}", 
+                error_msg);
+        send(client_socket, error_response, strlen(error_response), 0);
     } else {
-        int id_libro = atoi(PQgetvalue(res, 0, 0));
-
-        char id_libro_str[12];
-        char num_libri_str[12];
-        char num_libri_disponibili_str[12];
-
-        sprintf(id_libro_str, "%d", id_libro);
-        sprintf(num_libri_str, "%d", num_libri);
-        sprintf(num_libri_disponibili_str, "%d", num_libri); 
-
-        const char *paramValuesCopie[3] = {id_libro_str, num_libri_str, num_libri_disponibili_str};
-        res = PQexecParams(conn,
-            "INSERT INTO Copie (id_libro, copie_totali, copie_disponibili) VALUES ($1, $2, $3)",
-            3, NULL, paramValuesCopie, NULL, NULL, 0);
-
-        if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-            const char* error_msg = PQresultErrorMessage(res);
-            char error_response[512];
-            snprintf(error_response, sizeof(error_response), 
-                    "{\"status\": \"error\", \"message\": \"%s\"}", 
-                    error_msg);
-            send(client_socket, error_response, strlen(error_response), 0);
-        } else {
-            const char* success_response = "{\"status\": \"success\", \"message\": \"Libro e copie inseriti con successo\"}";
-            send(client_socket, success_response, strlen(success_response), 0);
-        }
+        const char* success_response = "{\"status\": \"success\", \"message\": \"Libro inserito con successo\"}";
+        send(client_socket, success_response, strlen(success_response), 0);
     }
 
     PQclear(res);
@@ -122,19 +136,16 @@ void handle_inserimento_libro(int client_socket, char* buffer) {
 void handle_options(int client_socket) {
     const char* options_response = 
         "HTTP/1.1 200 OK\r\n"
-        "Access-Control-Allow-Origin: http://localhost:3000\r\n"
+        "Access-Control-Allow-Origin: *\r\n"
         "Access-Control-Allow-Methods: POST, OPTIONS\r\n"
         "Access-Control-Allow-Headers: Content-Type\r\n"
         "Access-Control-Allow-Credentials: true\r\n"
-        "Access-Control-Max-Age: 86400\r\n"
         "Content-Length: 0\r\n"
+        "Access-Control-Allow-Headers: Content-Type, Authorization\r\n"
         "\r\n";
-    
     
     send(client_socket, options_response, strlen(options_response), 0);
 }
-
-
 
 void* handle_client(void* arg) {
     ThreadArgs* args = (ThreadArgs*)arg;

@@ -1,19 +1,23 @@
 "use client";
 import { GoBook } from "react-icons/go";
 import { GoTrash } from "react-icons/go";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
-export default function libroCarrelloComponent() {
-    let [numero, setNumero] = useState(0);
+export default function LibroCarrelloComponent() {
+    const [numero, setNumero] = useState(0);
+    const searchParams = useSearchParams();
+    const titolo = searchParams.get("titolo");
+    const copieDisponibili = searchParams.get("copie");
 
-    function handleButtonClickPlus(){
-        setNumero(numero + 1);
+    function handleButtonClickPlus() {
+        if (numero < parseInt(copieDisponibili)) {
+            setNumero(numero + 1);
+        }
     }
 
     function handleButtonClickMinus() {
-        if (numero == 0) {
-            setNumero(0);
-        } else {
+        if (numero > 0) {
             setNumero(numero - 1);
         }
     }
@@ -34,15 +38,11 @@ export default function libroCarrelloComponent() {
             <div className="flex flex-col gap-6 lg:gap-10 mt-0 lg:mt-10 text-center lg:text-left">
                 <div>
                     <h2 className="text-gray-500 text-xl lg:text-2xl">TITOLO:</h2>
-                    <p className="text-2xl lg:text-3xl font-bold">Il Signore degli Anelli</p>
+                    <p className="text-2xl lg:text-3xl font-bold">{titolo}</p>
                 </div>
                 <div>
-                    <h2 className="text-gray-500 text-xl lg:text-2xl">AUTORE:</h2>
-                    <p className="text-2xl lg:text-3xl font-bold">J.R.R. Tolkien</p>
-                </div>
-                <div>
-                    <h2 className="text-gray-500 text-xl lg:text-2xl">GENERE:</h2>
-                    <p className="text-2xl lg:text-3xl font-bold">Fantasy</p>
+                    <h2 className="text-gray-500 text-xl lg:text-2xl">COPIE DISPONIBILI:</h2>
+                    <p className="text-2xl lg:text-3xl font-bold">{copieDisponibili}</p>
                 </div>
             </div>
         </div>

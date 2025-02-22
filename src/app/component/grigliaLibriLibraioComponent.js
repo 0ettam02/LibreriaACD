@@ -39,22 +39,35 @@ export default function GrigliaLibriLibraio() {
         titolo, 
         autore, 
         genere, 
-        copieTotali: parseInt(copieTotali), 
-        copieDisponibili: parseInt(copieDisponibili) 
+        numLibri: parseInt(copieTotali), 
+        prenotati: parseInt(copieDisponibili)
       };
 
       try {
-        const response = await fetch('http://localhost:8083', {
+        const response = await fetch('http://localhost:8082', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json'
           },
           body: JSON.stringify(libro),
+          mode: 'cors'
         });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
         const data = await response.json();
         if (data.status === "success") {
-          setRighe([...righe, libro]);
+          const nuovoLibro = {
+            titolo,
+            autore,
+            genere,
+            copieTotali: parseInt(copieTotali),
+            copieDisponibili: parseInt(copieDisponibili)
+          };
+          setRighe([...righe, nuovoLibro]);
           setTitolo("");
           setAutore("");
           setGenere("");
@@ -64,7 +77,7 @@ export default function GrigliaLibriLibraio() {
           alert(data.message);
         }
       } catch (error) {
-        console.error('Errore durante l\'inserimento del libro:', error);
+
       }
     }
   };
@@ -116,7 +129,6 @@ export default function GrigliaLibriLibraio() {
           </button>
         </div>
         <div>
-          ciao
           <table className="text-2xl mt-5">
             <thead>
               <tr>
