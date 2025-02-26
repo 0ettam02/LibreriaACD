@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 
 export default function GrigliaLibriLibraio() {
@@ -128,6 +129,7 @@ export default function GrigliaLibriLibraio() {
             Aggiungi +
           </button>
         </div>
+        
         <div>
           <table className="text-2xl mt-5">
             <thead>
@@ -140,9 +142,10 @@ export default function GrigliaLibriLibraio() {
               </tr>
             </thead>
             <tbody>
+            
               {righe.map((riga, index) => (
                 <tr key={index} className={index % 2 === 0 ? "odd:bg-gray-300" : "even:bg-white"}>
-                  <td className="border border-black p-2">{riga.titolo}</td>
+                  <td className="border border-black p-2"><Link href="/grigiaStatistichePrenotazioniPage">{riga.titolo}</Link></td>
                   <td className="border border-black p-2">{riga.autore}</td>
                   <td className="border border-black p-2">{riga.genere}</td>
                   <td className="border border-black p-2">{riga.copieTotali}</td>
@@ -150,6 +153,7 @@ export default function GrigliaLibriLibraio() {
                 </tr>
               ))}
             </tbody>
+
           </table>
         </div>
       </div>
