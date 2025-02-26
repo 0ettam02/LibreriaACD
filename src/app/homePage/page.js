@@ -8,6 +8,7 @@ export default function Homepage() {
   const [libri, setLibri] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
     const fetchLibri = async () => {
@@ -36,10 +37,14 @@ export default function Homepage() {
     fetchLibri();
   }, []);
 
+  const libriFiltrati = libri.filter(libro =>
+    libro.titolo.toLowerCase().includes(searchText.toLowerCase()) 
+  );
+
   if (isLoading) {
     return (
       <>
-        <Header />
+        <Header searchText={searchText} setSearchText={setSearchText} /> 
         <div className="p-10 text-center">
           <p>Caricamento in corso...</p>
         </div>
@@ -51,7 +56,7 @@ export default function Homepage() {
   if (error) {
     return (
       <>
-        <Header />
+        <Header searchText={searchText} setSearchText={setSearchText} /> 
         <div className="p-10 text-center text-red-600">
           <p>{error}</p>
         </div>
@@ -62,9 +67,9 @@ export default function Homepage() {
 
   return (
     <>
-      <Header />
+      <Header searchText={searchText} setSearchText={setSearchText} /> {/* ✅ Passa lo stato */}
       <div className="p-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full max-w-screen">
-        {libri.map((libro, index) => (
+        {libriFiltrati.map((libro, index) => ( 
           <LibroHomepage key={index} titolo={libro.titolo} copie={libro.copie} />
         ))}
       </div>

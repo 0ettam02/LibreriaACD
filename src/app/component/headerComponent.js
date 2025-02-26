@@ -4,15 +4,19 @@ import { IoSearch } from "react-icons/io5";
 import { IoPersonCircleOutline } from "react-icons/io5";
 import Link from "next/link";
 
-export default function Header() {
+export default function Header({ searchText, setSearchText }) { 
     const [isLibraio, setIsLibraio] = useState(false);
 
     useEffect(() => {
-        const email = localStorage.getItem('userEmail');
+        const email = localStorage.getItem("userEmail");
         if (email && email.includes("@libraio")) {
             setIsLibraio(true);
         }
     }, []);
+
+    const handleSearchChange = (event) => {
+        setSearchText(event.target.value); 
+    };
 
     return (
         <div className="text-white flex justify-between items-center bg-[#8B0000] p-3">
@@ -20,6 +24,8 @@ export default function Header() {
             <div className="relative">
                 <input
                     type="text"
+                    value={searchText} 
+                    onChange={handleSearchChange} 
                     className="text-black p-2 border border-black border-2 rounded w-[10em] lg:w-[22em] pl-10"
                     placeholder="Harry Potter e la pietra filosofale"
                 />

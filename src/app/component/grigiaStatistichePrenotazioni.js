@@ -1,14 +1,8 @@
 "use client";
-import Link from "next/link";
 import { useState, useEffect } from "react";
 
 export default function GrigliaStatistichePrenotazioni() {
   const [righe, setRighe] = useState([]);
-  const [titolo, setTitolo] = useState("");
-  const [autore, setAutore] = useState("");
-  const [genere, setGenere] = useState("");
-  const [copieTotali, setCopieTotali] = useState("");
-  const [copieDisponibili, setCopieDisponibili] = useState("");
 
   useEffect(() => {
     const fetchLibri = async () => {
@@ -38,16 +32,15 @@ export default function GrigliaStatistichePrenotazioni() {
 
   return (
     <>
+    
       <div className="flex flex-col items-center ">
         <div>
           <table className="text-2xl mt-5">
             <thead>
               <tr>
-                <th className="border border-black p-2">Titolo</th>
-                <th className="border border-black p-2">Autore</th>
-                <th className="border border-black p-2">Genere</th>
-                <th className="border border-black p-2">N° Copie Totali</th>
-                <th className="border border-black p-2">N° Copie Disponibili</th>
+                <th className="border border-black p-2">Utente</th>
+                <th className="border border-black p-2">Inizio Prestito</th>
+                <th className="border border-black p-2">Fine Prestito</th>
               </tr>
             </thead>
             <tbody>
@@ -57,8 +50,6 @@ export default function GrigliaStatistichePrenotazioni() {
                   <td className="border border-black p-2">{riga.titolo}</td>
                   <td className="border border-black p-2">{riga.autore}</td>
                   <td className="border border-black p-2">{riga.genere}</td>
-                  <td className="border border-black p-2">{riga.copieTotali}</td>
-                  <td className="border border-black p-2">{riga.copieDisponibili}</td>
                 </tr>
               ))}
             </tbody>
