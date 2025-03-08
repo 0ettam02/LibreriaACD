@@ -43,14 +43,16 @@ void handle_prenotazione(int client_socket, char* buffer) {
     }
 
     struct json_object *parsed_json = json_tokener_parse(json_start);
-    struct json_object *data_prestito, *data_scadenza, *id_utente;
+    struct json_object *data_prestito, *data_scadenza, *id_utente, *titolo;
     json_object_object_get_ex(parsed_json, "data_prestito", &data_prestito);
     json_object_object_get_ex(parsed_json, "data_scadenza", &data_scadenza);
     json_object_object_get_ex(parsed_json, "id_utente", &id_utente);
+    json_object_object_get_ex(parsed_json, "titolo", &titolo);
 
     const char *data_prestito_str = json_object_get_string(data_prestito);
     const char *data_scadenza_str = json_object_get_string(data_scadenza);
     int id_utente_int = json_object_get_int(id_utente);
+    const char *titolo_str = json_object_get_string(titolo);
 
     pthread_mutex_lock(&db_mutex);
 
@@ -66,11 +68,39 @@ void handle_prenotazione(int client_socket, char* buffer) {
         return;
     }
 
-    PGresult *res;
-    const char *paramValues[3] = {data_prestito_str, data_scadenza_str, (char*)&id_utente_int};
+    // Recupera l'id_libro dal titolo
+    char query[256];
+    snprintf(query, sizeof(query), "SELECT id_libro FROM Libri WHERE titolo = '%s'", titolo_str);
+    PGresult *res = PQexec(conn, query);
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        const char* error_msg = PQresultErrorMessage(res);
+        char error_response[512];
+        snprintf(error_response, sizeof(error_response), 
+                "{\"status\": \"error\", \"message\": \"%s\"}", 
+                error_msg);
+        send(client_socket, response_headers, strlen(response_headers), 0);
+        send(client_socket, error_response, strlen(error_response), 0);
+        PQclear(res);
+        PQfinish(conn);
+        pthread_mutex_unlock(&db_mutex);
+        json_object_put(parsed_json);
+        return;
+    }
+
+    int id_libro = atoi(PQgetvalue(res, 0, 0));
+    PQclear(res);
+
+    // Converti id_utente e id_libro in stringhe
+    char id_utente_str[12], id_libro_str[12];
+    snprintf(id_utente_str, sizeof(id_utente_str), "%d", id_utente_int);
+    snprintf(id_libro_str, sizeof(id_libro_str), "%d", id_libro);
+
+    // Inserisci la prenotazione con l'id_libro
+    const char *paramValues[4] = {id_utente_str, data_prestito_str, data_scadenza_str, id_libro_str};
     res = PQexecParams(conn,
-        "INSERT INTO Prestiti (id_utente, data_prestito, data_scadenza) VALUES ($1, $2, $3)",
-        3, NULL, paramValues, NULL, NULL, 0);
+        "INSERT INTO Prestiti (id_utente, data_prestito, data_scadenza, id_libro) VALUES ($1::integer, $2::date, $3::date, $4::integer)",
+        4, NULL, paramValues, NULL, NULL, 0);
 
     send(client_socket, response_headers, strlen(response_headers), 0);
 

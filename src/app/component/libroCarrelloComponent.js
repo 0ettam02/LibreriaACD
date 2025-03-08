@@ -32,13 +32,16 @@ export default function LibroCarrelloComponent() {
         const id_utente = localStorage.getItem('userId');
         const data_prestito = startDate.toISOString().split("T")[0];
         const data_scadenza = endDate.toISOString().split("T")[0];
-
+    
         const prenotazione = {
             data_prestito: data_prestito,
             data_scadenza: data_scadenza,
-            id_utente: id_utente
+            id_utente: parseInt(id_utente),
+            titolo: titolo // Titolo recuperato dall'URL
         };
-
+    
+        console.log("JSON inviato:", JSON.stringify(prenotazione)); // Debug
+    
         try {
             const response = await fetch('http://localhost:8085', {
                 method: 'POST',
@@ -47,10 +50,10 @@ export default function LibroCarrelloComponent() {
                 },
                 body: JSON.stringify(prenotazione),
             });
-
+    
             const textResponse = await response.text(); 
             console.log("Risposta del server:", textResponse);
-
+    
             const data = JSON.parse(textResponse); 
             if (data.status === "success") {
                 alert("Prenotazione effettuata con successo!");
