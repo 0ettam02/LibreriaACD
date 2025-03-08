@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import Link from "next/link";
 
 export default function LibroCarrelloComponent() {
     const [numero, setNumero] = useState(0);
@@ -29,6 +28,41 @@ export default function LibroCarrelloComponent() {
 
     const isCheckoutDisabled = !startDate || !endDate || numero === 0;
 
+    const handleCheckout = async () => {
+        const id_utente = localStorage.getItem('userId');
+        const data_prestito = startDate.toISOString().split("T")[0];
+        const data_scadenza = endDate.toISOString().split("T")[0];
+
+        const prenotazione = {
+            data_prestito: data_prestito,
+            data_scadenza: data_scadenza,
+            id_utente: id_utente
+        };
+
+        try {
+            const response = await fetch('http://localhost:8085', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(prenotazione),
+            });
+
+            const textResponse = await response.text(); 
+            console.log("Risposta del server:", textResponse);
+
+            const data = JSON.parse(textResponse); 
+            if (data.status === "success") {
+                alert("Prenotazione effettuata con successo!");
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error('Errore durante la prenotazione:', error);
+            alert('Errore durante la prenotazione: ' + error.message);
+        }
+    };
+
     return (
         <div className="flex flex-col lg:flex-row justify-center items-center lg:items-start gap-8 lg:gap-20 mt-10 px-4 lg:px-0">
             <div className="flex flex-col items-center">
@@ -52,7 +86,6 @@ export default function LibroCarrelloComponent() {
                     <p className="text-2xl lg:text-3xl font-bold">{copieDisponibili}</p>
                 </div>
 
-                {/* Sezione per selezionare le date */}
                 <div className="flex flex-col gap-4 items-center lg:items-start">
                     <div className="flex flex-col">
                         <label className="text-gray-600 font-semibold">Data Inizio</label>
@@ -77,29 +110,17 @@ export default function LibroCarrelloComponent() {
                     </div>
                 </div>
 
-                {/* Tasto Checkout */}
-                <Link
-                    href={{
-                        pathname: "/checkoutPage",
-                        query: {
-                            titolo: titolo,
-                            copie: numero,
-                            startDate: startDate ? startDate.toISOString().split("T")[0] : "",
-                            endDate: endDate ? endDate.toISOString().split("T")[0] : "",
-                        },
-                    }}
+                <button
+                    onClick={handleCheckout}
+                    className={`mt-4 px-4 py-2 rounded text-white font-bold transition ${
+                        isCheckoutDisabled
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-red-500 hover:bg-red-700"
+                    }`}
+                    disabled={isCheckoutDisabled}
                 >
-                    <button
-                        className={`mt-4 px-4 py-2 rounded text-white font-bold transition ${
-                            isCheckoutDisabled
-                                ? "bg-gray-400 cursor-not-allowed"
-                                : "bg-red-500 hover:bg-red-700"
-                        }`}
-                        disabled={isCheckoutDisabled}
-                    >
-                        Checkout
-                    </button>
-                </Link>
+                    Checkout
+                </button>
             </div>
         </div>
     );

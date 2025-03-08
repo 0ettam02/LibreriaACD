@@ -30,7 +30,8 @@ export default function Login() {
             const data = await response.json();
             if (data.status === "success") {
                 localStorage.setItem('userEmail', email);
-                    window.location.href = "/homePage";
+                localStorage.setItem('userId', data.userId);
+                window.location.href = "/homePage";
             } else {
                 alert(data.message);
             }

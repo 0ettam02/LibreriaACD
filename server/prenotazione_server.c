@@ -8,7 +8,7 @@
 #include <json-c/json.h>
 #include <postgresql/libpq-fe.h>
 
-#define PORT 8081
+#define PORT 8085
 #define MAX_CLIENTS 10
 #define BUFFER_SIZE 4096
 
@@ -18,16 +18,15 @@ typedef struct {
     int socket;
 } ThreadArgs;
 
-void handle_login(int client_socket, char* buffer) {
+void handle_prenotazione(int client_socket, char* buffer) {
     const char* response_headers = 
         "HTTP/1.1 200 OK\r\n"
         "Access-Control-Allow-Origin: http://localhost:3000\r\n"
         "Access-Control-Allow-Methods: POST, OPTIONS\r\n"
         "Access-Control-Allow-Headers: Content-Type\r\n"
-        "Access-Control-Allow-Credentials: true\r\n"
         "Content-Type: application/json\r\n"
         "\r\n";
-    
+
     if (buffer == NULL) {
         const char* error_response = "{\"status\": \"error\", \"message\": \"Dati non validi\"}";
         send(client_socket, response_headers, strlen(response_headers), 0);
@@ -44,17 +43,19 @@ void handle_login(int client_socket, char* buffer) {
     }
 
     struct json_object *parsed_json = json_tokener_parse(json_start);
-    struct json_object *email, *password;
-    json_object_object_get_ex(parsed_json, "email", &email);
-    json_object_object_get_ex(parsed_json, "password", &password);
+    struct json_object *data_prestito, *data_scadenza, *id_utente;
+    json_object_object_get_ex(parsed_json, "data_prestito", &data_prestito);
+    json_object_object_get_ex(parsed_json, "data_scadenza", &data_scadenza);
+    json_object_object_get_ex(parsed_json, "id_utente", &id_utente);
 
-    const char* email_str = json_object_get_string(email);
-    const char* password_str = json_object_get_string(password);
+    const char *data_prestito_str = json_object_get_string(data_prestito);
+    const char *data_scadenza_str = json_object_get_string(data_scadenza);
+    int id_utente_int = json_object_get_int(id_utente);
 
     pthread_mutex_lock(&db_mutex);
-    
+
     PGconn *conn = PQconnectdb("host=localhost port=5432 dbname=libreriaACD user=postgres password=matteo");
-    
+
     if (PQstatus(conn) != CONNECTION_OK) {
         const char* error_response = "{\"status\": \"error\", \"message\": \"Errore di connessione al database\"}";
         send(client_socket, response_headers, strlen(response_headers), 0);
@@ -66,33 +67,22 @@ void handle_login(int client_socket, char* buffer) {
     }
 
     PGresult *res;
-    if (strstr(email_str, "@libraio") != NULL) {
-        const char *paramValues[2] = {email_str, password_str};
-        res = PQexecParams(conn,
-            "SELECT * FROM Libraio WHERE email = $1 AND password = $2",
-            2, NULL, paramValues, NULL, NULL, 0);
-    } else {
-        const char *paramValues[2] = {email_str, password_str};
-        res = PQexecParams(conn,
-            "SELECT * FROM Utenti WHERE email = $1 AND password = $2",
-            2, NULL, paramValues, NULL, NULL, 0);
-    }
+    const char *paramValues[3] = {data_prestito_str, data_scadenza_str, (char*)&id_utente_int};
+    res = PQexecParams(conn,
+        "INSERT INTO Prestiti (id_utente, data_prestito, data_scadenza) VALUES ($1, $2, $3)",
+        3, NULL, paramValues, NULL, NULL, 0);
 
     send(client_socket, response_headers, strlen(response_headers), 0);
-    
-    if (PQntuples(res) == 0) {
-        const char* error_response = "{\"status\": \"error\", \"message\": \"Email o password non validi\"}";
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        const char* error_msg = PQresultErrorMessage(res);
+        char error_response[512];
+        snprintf(error_response, sizeof(error_response), 
+                "{\"status\": \"error\", \"message\": \"%s\"}", 
+                error_msg);
         send(client_socket, error_response, strlen(error_response), 0);
     } else {
-        char success_response[256];
-        int user_id = atoi(PQgetvalue(res, 0, 0));
-        if (strstr(email_str, "@libraio") != NULL) {
-            snprintf(success_response, sizeof(success_response), 
-                "{\"status\": \"success\", \"message\": \"Login effettuato con successo\", \"type\": \"libraio\", \"userId\": %d}", user_id);
-        } else {
-            snprintf(success_response, sizeof(success_response), 
-                "{\"status\": \"success\", \"message\": \"Login effettuato con successo\", \"type\": \"utente\", \"userId\": %d}", user_id);
-        }
+        const char* success_response = "{\"status\": \"success\", \"message\": \"Prenotazione effettuata con successo\"}";
         send(client_socket, success_response, strlen(success_response), 0);
     }
 
@@ -100,20 +90,6 @@ void handle_login(int client_socket, char* buffer) {
     PQfinish(conn);
     pthread_mutex_unlock(&db_mutex);
     json_object_put(parsed_json);
-}
-
-void handle_options(int client_socket) {
-    const char* options_response = 
-        "HTTP/1.1 200 OK\r\n"
-        "Access-Control-Allow-Origin: http://localhost:3000\r\n"
-        "Access-Control-Allow-Methods: POST, OPTIONS\r\n"
-        "Access-Control-Allow-Headers: Content-Type\r\n"
-        "Access-Control-Allow-Credentials: true\r\n"
-        "Access-Control-Max-Age: 86400\r\n"
-        "Content-Length: 0\r\n"
-        "\r\n";
-    
-    send(client_socket, options_response, strlen(options_response), 0);
 }
 
 void* handle_client(void* arg) {
@@ -126,10 +102,8 @@ void* handle_client(void* arg) {
     if (bytes_received > 0) {
         buffer[bytes_received] = '\0';
 
-        if (strstr(buffer, "OPTIONS") != NULL) {
-            handle_options(client_socket);
-        } else if (strstr(buffer, "POST") != NULL) {
-            handle_login(client_socket, buffer);
+        if (strstr(buffer, "POST") != NULL) {
+            handle_prenotazione(client_socket, buffer);
         }
     }
 
