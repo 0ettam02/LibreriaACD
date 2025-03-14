@@ -14,7 +14,7 @@
 
 pthread_mutex_t db_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-void handle_send_notification(int client_socket, char* buffer) {
+void handle_notifica(int client_socket, char* buffer) {
     const char* response_headers = 
         "HTTP/1.1 200 OK\r\n"
         "Access-Control-Allow-Origin: *\r\n"
@@ -30,14 +30,24 @@ void handle_send_notification(int client_socket, char* buffer) {
         return;
     }
 
-    struct json_object *parsed_json;
-    parsed_json = json_tokener_parse(buffer);
-    struct json_object *userId, *message;
-    json_object_object_get_ex(parsed_json, "userId", &userId);
-    json_object_object_get_ex(parsed_json, "message", &message);
+    char* json_start = strstr(buffer, "{");
+    if (!json_start) {
+        const char* error_response = "{\"status\": \"error\", \"message\": \"JSON non valido\"}";
+        send(client_socket, response_headers, strlen(response_headers), 0);
+        send(client_socket, error_response, strlen(error_response), 0);
+        return;
+    }
 
-    const char *user_id_str = json_object_get_string(userId);
-    const char *message_str = json_object_get_string(message);
+    struct json_object *parsed_json = json_tokener_parse(json_start);
+    struct json_object *id_utente, *messaggio;
+    json_object_object_get_ex(parsed_json, "id_utente", &id_utente);
+    json_object_object_get_ex(parsed_json, "messaggio", &messaggio);
+
+    int id_utente_int = json_object_get_int(id_utente);
+    const char *messaggio_str = json_object_get_string(messaggio);
+
+    char id_utente_str[12];
+    snprintf(id_utente_str, sizeof(id_utente_str), "%d", id_utente_int);
 
     pthread_mutex_lock(&db_mutex);
 
@@ -48,16 +58,16 @@ void handle_send_notification(int client_socket, char* buffer) {
         send(client_socket, response_headers, strlen(response_headers), 0);
         send(client_socket, error_response, strlen(error_response), 0);
         pthread_mutex_unlock(&db_mutex);
+        json_object_put(parsed_json);
         PQfinish(conn);
         return;
     }
 
-    char query[512];
-    snprintf(query, sizeof(query),
-        "UPDATE utenti SET notifiche = array_append(notifiche, '%s') WHERE id_utente = %s",
-        message_str, user_id_str);
+    const char *paramValues[2] = {messaggio_str, id_utente_str};
 
-    PGresult *res = PQexec(conn, query);
+    PGresult *res = PQexecParams(conn,
+        "INSERT INTO Notifiche (messaggio, id_utente) VALUES ($1, $2)",
+        2, NULL, paramValues, NULL, NULL, 0);
 
     send(client_socket, response_headers, strlen(response_headers), 0);
 
@@ -69,13 +79,14 @@ void handle_send_notification(int client_socket, char* buffer) {
                 error_msg);
         send(client_socket, error_response, strlen(error_response), 0);
     } else {
-        const char* success_response = "{\"status\": \"success\", \"message\": \"Messaggio inviato con successo\"}";
+        const char* success_response = "{\"status\": \"success\", \"message\": \"Notifica inviata con successo\"}";
         send(client_socket, success_response, strlen(success_response), 0);
     }
 
     PQclear(res);
     PQfinish(conn);
     pthread_mutex_unlock(&db_mutex);
+    json_object_put(parsed_json);
 }
 
 void* handle_client(void* arg) {
@@ -86,7 +97,7 @@ void* handle_client(void* arg) {
     ssize_t bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
     if (bytes_received > 0) {
         buffer[bytes_received] = '\0';
-        handle_send_notification(client_socket, buffer);
+        handle_notifica(client_socket, buffer);
     }
 
     close(client_socket);
