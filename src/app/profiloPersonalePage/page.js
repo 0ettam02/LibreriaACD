@@ -10,9 +10,10 @@ export default function ProfiloPersonale() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    const userId = localStorage.getItem('userId'); // Recupera l'ID dell'utente
     const fetchLibriPrenotati = async () => {
       try {
-        const response = await fetch('http://localhost:8083/profilo', {
+        const response = await fetch(`http://localhost:8083/profilo?userId=${userId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

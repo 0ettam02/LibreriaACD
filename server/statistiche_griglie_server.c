@@ -40,7 +40,6 @@ void handle_statistiche(int client_socket) {
         return;
     }
 
-    // Estrai il metodo dalla richiesta
     char buffer[BUFFER_SIZE] = {0};
     ssize_t bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
     if (bytes_received > 0) {
@@ -54,12 +53,10 @@ void handle_statistiche(int client_socket) {
         }
     }
 
-    // Recupera il titolo del libro dalla query string
     char* query_string = getenv("QUERY_STRING");
     char titolo[256];
-    sscanf(query_string, "titolo=%s", titolo); // Assicurati di gestire correttamente la decodifica dell'URL
+    sscanf(query_string, "titolo=%s", titolo); 
 
-    // Query per ottenere le statistiche delle prenotazioni
     char query[512];
     snprintf(query, sizeof(query), 
         "SELECT P.id_utente, P.data_prestito, P.data_scadenza, P.id_libro "
@@ -115,7 +112,6 @@ void* handle_client(void* arg) {
     if (bytes_received > 0) {
         buffer[bytes_received] = '\0';
 
-        // Gestisci le richieste OPTIONS (preflight)
         if (strstr(buffer, "OPTIONS /") != NULL) {
             const char* options_response = 
                 "HTTP/1.1 200 OK\r\n"
@@ -126,7 +122,6 @@ void* handle_client(void* arg) {
             send(client_socket, options_response, strlen(options_response), 0);
         }
 
-        // Gestisci le richieste GET
         if (strstr(buffer, "GET /") != NULL) {
             handle_statistiche(client_socket);
         }

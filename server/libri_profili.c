@@ -18,6 +18,15 @@ typedef struct {
     int socket;
 } ThreadArgs;
 
+char* itostr(int num) {
+    // Alloca memoria per la stringa
+    char* str = malloc(12); // Sufficiente per un intero
+    if (str != NULL) {
+        snprintf(str, 12, "%d", num); // Converte l'intero in stringa
+    }
+    return str;
+}
+
 void handle_get_libri(int client_socket) {
     const char* response_headers = 
         "HTTP/1.1 200 OK\r\n"
@@ -79,7 +88,7 @@ void handle_get_libri(int client_socket) {
     pthread_mutex_unlock(&db_mutex);
 }
 
-void handle_get_libri_profilo(int client_socket) {
+void handle_get_libri_profilo(int client_socket, int user_id) {
     const char* response_headers = 
         "HTTP/1.1 200 OK\r\n"
         "Access-Control-Allow-Origin: http://localhost:3000\r\n"
@@ -101,9 +110,17 @@ void handle_get_libri_profilo(int client_socket) {
         return;
     }
 
-    PGresult *res = PQexec(conn, "SELECT titolo FROM Libri");
+    printf("User ID: %d\n", user_id);
+
+    char* user_id_str = itostr(user_id);
+    PGresult *res = PQexecParams(conn,
+        "SELECT l.titolo FROM Prestiti p JOIN Libri l ON p.id_libro = l.id_libro WHERE p.id_utente = $1",
+        1, NULL, (const char*[]){user_id_str}, NULL, NULL, 0);
+    free(user_id_str);
     
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        const char* error_msg = PQresultErrorMessage(res);
+        printf("Query Error: %s\n", error_msg);
         const char* error_response = "{\"status\": \"error\", \"message\": \"Errore nella query\"}";
         send(client_socket, response_headers, strlen(response_headers), 0);
         send(client_socket, error_response, strlen(error_response), 0);
@@ -159,7 +176,7 @@ void* handle_client(void* arg) {
         if (strstr(buffer, "OPTIONS") != NULL) {
             handle_options(client_socket);
         } else if (strstr(buffer, "GET /profilo") != NULL) {
-            handle_get_libri_profilo(client_socket);
+            handle_get_libri_profilo(client_socket, 1); // Assuming user_id is 1 for now
         } else if (strstr(buffer, "GET") != NULL) {
             handle_get_libri(client_socket);
         }
