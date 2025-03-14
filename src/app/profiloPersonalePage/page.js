@@ -42,6 +42,28 @@ export default function ProfiloPersonale() {
     fetchLibriPrenotati();
   }, []);
 
+  const handleDelete = async (titolo) => {
+    const userId = localStorage.getItem('userId');
+    try {
+      const response = await fetch(`http://localhost:8087/eliminaLibro?userId=${userId}&titolo=${encodeURIComponent(titolo)}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      if (data.status === "success") {
+        setLibriPrenotati(libriPrenotati.filter(libro => libro.titolo !== titolo));
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      console.error('Errore durante l\'eliminazione del libro:', error);
+      alert('Errore durante l\'eliminazione del libro');
+    }
+  };
+
   if (isLoading) {
     return (
       <>
@@ -83,6 +105,7 @@ export default function ProfiloPersonale() {
                 titolo={libro.titolo}
                 dataP={libro.dataPrenotazione}
                 dataFP={libro.dataScadenza}
+                onDelete={() => handleDelete(libro.titolo)}
               />
             ))
           )}
