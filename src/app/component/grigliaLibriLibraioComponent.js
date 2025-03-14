@@ -145,7 +145,11 @@ export default function GrigliaLibriLibraio() {
             
               {righe.map((riga, index) => (
                 <tr key={index} className={index % 2 === 0 ? "odd:bg-gray-300" : "even:bg-white"}>
-                  <td className="border border-black p-2"><Link href="/grigiaStatistichePrenotazioniPage">{riga.titolo}</Link></td>
+                  <td className="border border-black p-2">
+                    <Link href={`/grigiaStatistichePrenotazioniPage?titolo=${encodeURIComponent(riga.titolo)}`}>
+                      {riga.titolo}
+                    </Link>
+                  </td>
                   <td className="border border-black p-2">{riga.autore}</td>
                   <td className="border border-black p-2">{riga.genere}</td>
                   <td className="border border-black p-2">{riga.copieTotali}</td>

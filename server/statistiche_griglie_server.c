@@ -22,7 +22,7 @@ void handle_statistiche(int client_socket) {
     const char* response_headers = 
     "HTTP/1.1 200 OK\r\n"
     "Access-Control-Allow-Origin: http://localhost:3000\r\n"
-    "Access-Control-Allow-Methods: GET, OPTIONS\r\n"
+    "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
     "Access-Control-Allow-Headers: Content-Type\r\n"
     "Content-Type: application/json\r\n"
     "\r\n";
@@ -40,8 +40,33 @@ void handle_statistiche(int client_socket) {
         return;
     }
 
+    // Estrai il metodo dalla richiesta
+    char buffer[BUFFER_SIZE] = {0};
+    ssize_t bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
+    if (bytes_received > 0) {
+        buffer[bytes_received] = '\0';
+        char* method = strtok(buffer, " "); // Supponendo che il buffer contenga la richiesta
+        if (strcmp(method, "OPTIONS") == 0) {
+            send(client_socket, response_headers, strlen(response_headers), 0);
+            pthread_mutex_unlock(&db_mutex);
+            PQfinish(conn);
+            return;
+        }
+    }
+
+    // Recupera il titolo del libro dalla query string
+    char* query_string = getenv("QUERY_STRING");
+    char titolo[256];
+    sscanf(query_string, "titolo=%s", titolo); // Assicurati di gestire correttamente la decodifica dell'URL
+
     // Query per ottenere le statistiche delle prenotazioni
-    const char* query = "SELECT id_utente, data_prestito, data_scadenza, id_libro FROM prestiti";
+    char query[512];
+    snprintf(query, sizeof(query), 
+        "SELECT P.id_utente, P.data_prestito, P.data_scadenza, P.id_libro "
+        "FROM prestiti AS P "
+        "INNER JOIN libri AS L ON P.id_libro = L.id_libro "
+        "WHERE L.titolo = '%s'", titolo);
+    
     PGresult *res = PQexec(conn, query);
 
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {

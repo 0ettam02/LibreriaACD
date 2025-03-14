@@ -6,7 +6,8 @@ gcc -o user_registration_server user_registration_server.c -lpthread -ljson-c -l
 gcc -o libri_profili libri_profili.c -lpthread -ljson-c -lpq
 gcc -o libri_homepage libri_homepage.c -lpthread -ljson-c -lpq
 gcc -o prenotazione_server prenotazione_server.c -lpthread -ljson-c -lpq
-gcc -o statistiche_griglie_server statistiche_griglie_server.c -lpthread -ljson-c -lpq
+#gcc -o statistiche_griglie_server statistiche_griglie_server.c -lpthread -ljson-c -lpq
+node server.js 8086 &
 
 ./user_registration_server 8080 &
 ./user_login_server 8081 &
@@ -14,7 +15,7 @@ gcc -o statistiche_griglie_server statistiche_griglie_server.c -lpthread -ljson-
 ./libri_profili 8083 &
 ./libri_homepage 8084 &
 ./prenotazione_server 8085 &
-./statistiche_griglie_server 8086 &
+#./statistiche_griglie_server 8086 &
 
 echo "Server avviati con successo!"
 echo "Per terminare tutti i server, esegui: kill $(jobs -p)"

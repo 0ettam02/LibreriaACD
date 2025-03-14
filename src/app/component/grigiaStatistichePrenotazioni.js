@@ -1,38 +1,41 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function GrigliaStatistichePrenotazioni() {
   const [righe, setRighe] = useState([]);
+  const searchParams = useSearchParams();
+  const titolo = searchParams.get("titolo");
 
   useEffect(() => {
     const fetchPrenotazioni = async () => {
-      try {
-        const response = await fetch('http://localhost:8086', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+      if (titolo) {
+        try {
+          const response = await fetch(`http://localhost:8086/statistiche?titolo=${encodeURIComponent(titolo)}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
 
-        if (!response.ok) {
-          throw new Error(`Errore HTTP: ${response.status} - ${response.statusText}`);
+          if (!response.ok) {
+            throw new Error(`Errore HTTP: ${response.status} - ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          if (Array.isArray(data)) {
+            setRighe(data);
+          } else {
+            console.error('Formato dati non valido:', data);
+          }
+        } catch (error) {
+          console.error('Errore nella richiesta delle prenotazioni:', error);
         }
-
-        const data = await response.json();
-        console.log('Dati ricevuti:', data); // Debug
-
-        if (Array.isArray(data)) {
-          setRighe(data); // Imposta i dati ricevuti
-        } else {
-          console.error('Formato dati non valido:', data);
-        }
-      } catch (error) {
-        console.error('Errore nella richiesta delle prenotazioni:', error);
       }
     };
 
     fetchPrenotazioni();
-  }, []);
+  }, [titolo]);
 
   return (
     <>
