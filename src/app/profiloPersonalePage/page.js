@@ -26,6 +26,7 @@ export default function ProfiloPersonale() {
 
         const data = await response.json();
         if (data.status === "success") {
+          console.log(data.libriPrenotati); // Aggiungi questo log per controllare i dati
           setLibriPrenotati(data.libriPrenotati);
         } else {
           setError(data.message || 'Errore nel caricamento dei libri');
@@ -81,7 +82,7 @@ export default function ProfiloPersonale() {
                 key={index}
                 titolo={libro.titolo}
                 dataP={libro.dataPrenotazione}
-                dataFP={libro.stato}
+                dataFP={libro.dataScadenza}
               />
             ))
           )}

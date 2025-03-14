@@ -110,17 +110,13 @@ void handle_get_libri_profilo(int client_socket, int user_id) {
         return;
     }
 
-    printf("User ID: %d\n", user_id);
-
-    char* user_id_str = itostr(user_id);
     PGresult *res = PQexecParams(conn,
-        "SELECT l.titolo FROM Prestiti p JOIN Libri l ON p.id_libro = l.id_libro WHERE p.id_utente = $1",
-        1, NULL, (const char*[]){user_id_str}, NULL, NULL, 0);
-    free(user_id_str);
+        "SELECT l.titolo, p.data_prestito, p.data_scadenza "
+        "FROM Prestiti p JOIN Libri l ON p.id_libro = l.id_libro WHERE p.id_utente = $1",
+        1, NULL, (const char*[]){itostr(user_id)}, NULL, NULL, 0);
     
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         const char* error_msg = PQresultErrorMessage(res);
-        printf("Query Error: %s\n", error_msg);
         const char* error_response = "{\"status\": \"error\", \"message\": \"Errore nella query\"}";
         send(client_socket, response_headers, strlen(response_headers), 0);
         send(client_socket, error_response, strlen(error_response), 0);
@@ -137,8 +133,10 @@ void handle_get_libri_profilo(int client_socket, int user_id) {
     for (int i = 0; i < rows; i++) {
         char libro[1024];
         snprintf(libro, sizeof(libro),
-                "{\"titolo\": \"%s\", \"stato\": \"In prestito\", \"dataPrenotazione\": \"2024-01-01\"}%s",
+                "{\"titolo\": \"%s\", \"dataPrenotazione\": \"%s\", \"dataScadenza\": \"%s\"}%s",
                 PQgetvalue(res, i, 0),
+                PQgetvalue(res, i, 1),
+                PQgetvalue(res, i, 2),
                 i < rows - 1 ? "," : "");
         send(client_socket, libro, strlen(libro), 0);
     }
