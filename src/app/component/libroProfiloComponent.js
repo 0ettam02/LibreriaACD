@@ -7,13 +7,10 @@ export default function LibroProfilo({ titolo, dataP, dataFP, onDelete }) {
             <GoBook className="size-40 text-[#8B0000] ml-2" />
             <div className="flex flex-col justify-center">
                 <p>TITOLO: {titolo}</p>
-                {/* TO DO!!! QUESTO CODICE É UTILE PER LA PARTE DELLA PRENOTAZIONE, NON DA BUTTARE SUBITO */}
-                {/* <p>DATA PRESTITO: <input type="date"/></p>
-                <p>DATA RESTITUZIONE: <input type="date"/></p> */}
                 <p>DATA PRESTITO: {dataP}</p>
                 <p>DATA FINE PRESTITO: {dataFP}</p>
                 <button onClick={onDelete} className="text-red-500">
-                    <GoTrash /> Elimina
+                     Restituisci
                 </button>
             </div>
         </div>

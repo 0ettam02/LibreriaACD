@@ -19,7 +19,6 @@ export default function Header({ searchText, setSearchText }) {
             setIsLibraio(true);
         }
 
-        // Controlla le notifiche
         const checkNotifiche = async () => {
             try {
                 const response = await fetch(`http://localhost:8089/check-notifiche?userId=${userId}`, {
@@ -41,7 +40,6 @@ export default function Header({ searchText, setSearchText }) {
 
         if (userId) {
             checkNotifiche();
-            // Controlla le notifiche ogni minuto
             const interval = setInterval(checkNotifiche, 60000);
             return () => clearInterval(interval);
         }

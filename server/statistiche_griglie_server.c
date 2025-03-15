@@ -44,7 +44,7 @@ void handle_statistiche(int client_socket) {
     ssize_t bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
     if (bytes_received > 0) {
         buffer[bytes_received] = '\0';
-        char* method = strtok(buffer, " "); // Supponendo che il buffer contenga la richiesta
+        char* method = strtok(buffer, " "); 
         if (strcmp(method, "OPTIONS") == 0) {
             send(client_socket, response_headers, strlen(response_headers), 0);
             pthread_mutex_unlock(&db_mutex);

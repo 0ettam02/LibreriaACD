@@ -18,7 +18,6 @@ typedef struct {
     int socket;
 } ThreadArgs;
 
-// Dichiarazione anticipata della funzione
 void handle_check_notifiche(int client_socket, char* query_string);
 
 void* handle_client(void* arg) {
@@ -171,4 +170,4 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-// ... resto del codice del server come gli altri server ... 
+ 

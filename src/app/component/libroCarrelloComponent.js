@@ -37,10 +37,10 @@ export default function LibroCarrelloComponent() {
             data_prestito: data_prestito,
             data_scadenza: data_scadenza,
             id_utente: parseInt(id_utente),
-            titolo: titolo // Titolo recuperato dall'URL
+            titolo: titolo 
         };
     
-        console.log("JSON inviato:", JSON.stringify(prenotazione)); // Debug
+        console.log("JSON inviato:", JSON.stringify(prenotazione)); 
     
         try {
             const response = await fetch('http://localhost:8085', {

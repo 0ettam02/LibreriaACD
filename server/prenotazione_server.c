@@ -91,12 +91,10 @@ void handle_prenotazione(int client_socket, char* buffer) {
     int id_libro = atoi(PQgetvalue(res, 0, 0));
     PQclear(res);
 
-    // Converti id_utente e id_libro in stringhe
     char id_utente_str[12], id_libro_str[12];
     snprintf(id_utente_str, sizeof(id_utente_str), "%d", id_utente_int);
     snprintf(id_libro_str, sizeof(id_libro_str), "%d", id_libro);
 
-    // Inserisci la prenotazione con l'id_libro
     const char *paramValues[4] = {id_utente_str, data_prestito_str, data_scadenza_str, id_libro_str};
     res = PQexecParams(conn,
         "INSERT INTO Prestiti (id_utente, data_prestito, data_scadenza, id_libro) VALUES ($1::integer, $2::date, $3::date, $4::integer)",

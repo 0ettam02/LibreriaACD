@@ -10,7 +10,7 @@ export default function ProfiloPersonale() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const userId = localStorage.getItem('userId'); // Recupera l'ID dell'utente
+    const userId = localStorage.getItem('userId'); 
     const fetchLibriPrenotati = async () => {
       try {
         const response = await fetch(`http://localhost:8083/profilo?userId=${userId}`, {
@@ -26,7 +26,7 @@ export default function ProfiloPersonale() {
 
         const data = await response.json();
         if (data.status === "success") {
-          console.log(data.libriPrenotati); // Aggiungi questo log per controllare i dati
+          console.log(data.libriPrenotati); 
           setLibriPrenotati(data.libriPrenotati);
         } else {
           setError(data.message || 'Errore nel caricamento dei libri');
@@ -45,7 +45,7 @@ export default function ProfiloPersonale() {
   const handleDelete = async (titolo) => {
     const userId = localStorage.getItem('userId');
     try {
-      const response = await fetch(`http://localhost:8087/eliminaLibro?userId=${userId}&titolo=${encodeURIComponent(titolo)}`, {
+      const response = await fetch(`http://localhost:8086/eliminaLibro?userId=${userId}&titolo=${encodeURIComponent(titolo)}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

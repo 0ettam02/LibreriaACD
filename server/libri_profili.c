@@ -19,10 +19,9 @@ typedef struct {
 } ThreadArgs;
 
 char* itostr(int num) {
-    // Alloca memoria per la stringa
-    char* str = malloc(12); // Sufficiente per un intero
+    char* str = malloc(12);
     if (str != NULL) {
-        snprintf(str, 12, "%d", num); // Converte l'intero in stringa
+        snprintf(str, 12, "%d", num); 
     }
     return str;
 }
