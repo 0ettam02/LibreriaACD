@@ -9,7 +9,8 @@ gcc -o prenotazione_server prenotazione_server.c -lpthread -ljson-c -lpq
 #gcc -o statistiche_griglie_server statistiche_griglie_server.c -lpthread -ljson-c -lpq
 #gcc -o elimina_libro_server elimina_libro_server.c -lpthread -ljson-c -lpq
 gcc -o notifiche_server notifiche_server.c -lpthread -ljson-c -lpq
-node server.js 8086 &
+gcc -o check_notifiche_server check_notifiche_server.c -lpthread -ljson-c -lpq
+
 
 ./user_registration_server 8080 &
 ./user_login_server 8081 &
@@ -17,9 +18,11 @@ node server.js 8086 &
 ./libri_profili 8083 &
 ./libri_homepage 8084 &
 ./prenotazione_server 8085 &
+node server.js 8086 &
 #./statistiche_griglie_server 8086 &
 #./elimina_libro_server 8087 &
 ./notifiche_server 8088 &
+./check_notifiche_server 8089 &
 
 
 echo "Server avviati con successo!"
